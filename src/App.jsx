@@ -1,158 +1,204 @@
-import { useState } from "react";
-import { Button, Select, MenuItem, FormControl, TextField, Typography, Box, Switch, FormControlLabel, Slider } from "@mui/material";
-import "./App.css";
+import React, { useState } from 'react';
+import Select from 'react-select';
+import './App.css';
 
 export default function ModeSelection() {
-  const [selectedMode, setSelectedMode] = useState("");
-  const [frequency, setFrequency] = useState({ min: "", max: "" });
+  // Define options for each dropdown
+  const gameOptions = [{ value: 'matching', label: 'Matching Game' }];
+  const selectionTypeOptions = [
+    { value: 'random', label: 'Random' },
+    { value: 'theme', label: 'By Theme' },
+    { value: 'pos', label: 'By POS' },
+  ];
+
+  // Initialize state as objects for react-select
+  const [gameType, setGameType] = useState(gameOptions[0]);
+  const [selectionType, setSelectionType] = useState(selectionTypeOptions[0]);
+  const [themeOrPosSelection, setThemeOrPosSelection] = useState({ value: 'random', label: 'Random' });
+  const [frequency, setFrequency] = useState({ min: '0', max: '6000' });
   const [vocalization, setVocalization] = useState(false);
   const [problemCount, setProblemCount] = useState(10);
-
-  const handleModeSelection = (mode) => {
-    setSelectedMode(mode);
+  const handleFrequencyChange = (e, type) => {
+    const value = e.target.value;
+    // Allow empty value or one that only contains digits
+    if (value === '' || /^\d+$/.test(value)) {
+      setFrequency({ ...frequency, [type]: value });
+    }
   };
+  
+
+  // Dynamically set options for third dropdown based on selectionType
+  let dynamicOptions = [];
+  if (selectionType.value === 'random') {
+    dynamicOptions = [{ value: 'random', label: 'Random' }];
+  } else if (selectionType.value === 'theme') {
+    dynamicOptions = [
+      { value: '', label: 'Select Theme', isDisabled: true },
+      { value: 'body-parts', label: 'Body Parts' },
+      { value: 'ritual-religion', label: 'Ritual and Religion' },
+      { value: 'government-law', label: 'Government and Law' },
+    ];
+  } else if (selectionType.value === 'pos') {
+    dynamicOptions = [
+      { value: '', label: 'Select Part of Speech', isDisabled: true },
+      { value: 'pronouns', label: 'Pronouns' },
+      { value: 'nouns', label: 'Nouns' },
+      { value: 'adjectives', label: 'Adjectives' },
+      { value: 'verbs', label: 'Verbs' },
+    ];
+  }
 
   return (
-    <Box className="panel wide-panel">
-      <Box className="mode-buttons">
-        {/* Theme Selection */}
-        <Box className="mode-option">
-          <Button
-            className={`mode-button ${selectedMode === "theme" ? "active" : ""}`}
-            onClick={() => handleModeSelection("theme")}
-          >
-            Theme
-          </Button>
-          <FormControl className="dropdown-container">
-            <Select displayEmpty disabled={selectedMode !== "theme"}>
-              <MenuItem value="" disabled>Select a Theme</MenuItem>
-              <MenuItem value="body-parts">Body Parts</MenuItem>
-              <MenuItem value="ritual-religion">Ritual and Religion</MenuItem>
-              <MenuItem value="government-law">Government and Law</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+    <div className='panel wide-panel'>
+      {/* First row with three dropdowns */}
+      <div
+        className='dropdown-row'
+        style={{
+          display: 'flex',
+          gap: '10px',
+          marginBottom: '20px',
+          justifyContent: 'center',
+        }}
+      >
+        {/* First Dropdown - Game Type */}
+        <div className='dropdown-container'>
+          <Select
+            value={gameType}
+            onChange={setGameType}
+            options={gameOptions}
+            isSearchable={false}
+            styles={{
+              container: (provided) => ({ ...provided, width: 220 }),
+            }}
+          />
+        </div>
 
-        {/* Part of Speech Selection */}
-        <Box className="mode-option">
-          <Button
-            className={`mode-button ${selectedMode === "pos" ? "active" : ""}`}
-            onClick={() => handleModeSelection("pos")}
-          >
-            Part of Speech
-          </Button>
-          <FormControl className="dropdown-container">
-            <Select displayEmpty disabled={selectedMode !== "pos"}>
-              <MenuItem value="" disabled>Select Part of Speech</MenuItem>
-              <MenuItem value="pronouns">Pronouns</MenuItem>
-              <MenuItem value="nouns">Nouns</MenuItem>
-              <MenuItem value="adjectives">Adjectives</MenuItem>
-              <MenuItem value="verbs">Verbs</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+        {/* Second Dropdown - Selection Type */}
+        <div className='dropdown-container'>
+          <Select
+            value={selectionType}
+            onChange={(option) => {
+              setSelectionType(option);
+              // Reset the third dropdown when selection type changes
+              if (option.value === 'random') {
+                setThemeOrPosSelection({ value: 'random', label: 'Random' });
+              } else {
+                setThemeOrPosSelection(null);
+              }
+            }}
+            options={selectionTypeOptions}
+            isSearchable={false}
+            styles={{
+              container: (provided) => ({ ...provided, width: 220 }),
+            }}
+          />
+        </div>
 
-        {/* Frequency Selection */}
-        <Box className="mode-option">
-          <Button
-            className={`mode-button ${selectedMode === "frequency" ? "active" : ""}`}
-            onClick={() => handleModeSelection("frequency")}
-          >
-            Frequency
-          </Button>
-          <Box className="input-container">
-            {/* Min Frequency */}
-            <Box>
-              <TextField
-                type="number"
-                value={frequency.min}
-                onChange={(e) => setFrequency({ ...frequency, min: e.target.value })}
-                fullWidth
-                className="fixed-width-input"
-                style={{
-                  height: "56px",
-                  paddingTop: "10px",
-                  width: "220px",
-                }}
-                disabled={selectedMode !== "frequency" && selectedMode !== "pos"}
-              />
-              <Typography className="input-label">Min Frequency</Typography>
-            </Box>
+        {/* Third Dropdown - Dynamic options based on second dropdown */}
+        <div className='dropdown-container'>
+          <Select
+            value={themeOrPosSelection}
+            onChange={setThemeOrPosSelection}
+            options={dynamicOptions}
+            isSearchable={false}
+            styles={{
+              container: (provided) => ({ ...provided, width: 220 }),
+            }}
+          />
+        </div>
+      </div>
 
-            {/* Max Frequency */}
-            <Box>
-              <TextField
-                type="number"
-                value={frequency.max}
-                onChange={(e) => setFrequency({ ...frequency, max: e.target.value })}
-                fullWidth
-                className="fixed-width-input"
-                style={{
-                  height: "56px",
-                  paddingTop: "10px",
-                  width: "220px",
-                }}
-                disabled={selectedMode !== "frequency" && selectedMode !== "pos"}
-              />
-              <Typography className="input-label">Max Frequency</Typography>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+      {/* Second row - Frequency inputs */}
+      <div
+        className='frequency-row'
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '20px',
+          marginBottom: '20px',
+        }}
+      >
+        {/* Min Frequency */}
+        <div>
+          <input
+            type='number'
+            value={frequency.min}
+            onChange={e => handleFrequencyChange(e, 'min')}
+            className='fixed-width-input'
+            style={{
+              height: '20px',
+              paddingTop: '10px',
+              width: '220px',
+              fontSize: '18px',
+            }}
+            disabled={selectionType.value === 'theme'}
+          />
+          <div className='input-label'>Min Frequency</div>
+        </div>
+
+        {/* Max Frequency */}
+        <div>
+          <input
+            type='number'
+            value={frequency.max}
+            onChange={e => handleFrequencyChange(e, 'max')}
+            className='fixed-width-input'
+            style={{
+              height: '20px',
+              paddingTop: '10px',
+              width: '220px',
+              fontSize: '18px',
+            }}
+            disabled={selectionType.value === 'theme'}
+          />
+          <div className='input-label'>Max Frequency</div>
+        </div>
+      </div>
 
       {/* Vocalization Mode Toggle */}
-      <Box className="vocalization-toggle">
-        <Typography>Vocalization Mode:</Typography>
-        <FormControlLabel
-          control={<Switch checked={vocalization} onChange={() => setVocalization(!vocalization)} />}
-          label={vocalization ? "Vocalize" : "Unvocalize"}
-        />
-      </Box>
+      <div className='vocalization-toggle'>
+        <div style={{fontWeight: 'bold'}}>Vocalization Mode:</div>
+        <label className='switch-label'>
+          <input
+            type='checkbox'
+            checked={vocalization}
+            onChange={() => setVocalization(!vocalization)}
+          />
+          <span className='switch-text'>
+            {vocalization ? 'Vocalize' : 'Unvocalize'}
+          </span>
+        </label>
+      </div>
 
       {/* Slider Feature */}
-      <Box className="slider-container">
-        <Typography className="slider-question">How many problems would you like to do?</Typography>
-        <Slider
-          value={problemCount}
-          onChange={(e, newValue) => setProblemCount(newValue)}
-          min={1}
-          max={20}
-          step={1}
-          className="problem-slider"
-          valueLabelDisplay="on" // Ensures the number stays visible inside the circle
-          sx={{
-            color: "#c29464", // Adjust color to match your theme
-            "& .MuiSlider-thumb": {
-              width: 40,
-              height: 40,
-              backgroundColor: "#c29464",
-              "&:before": {
-                boxShadow: "none"
-              }
-            },
-            "& .MuiSlider-valueLabel": {
-              backgroundColor: "transparent", // Remove default background
-              color: "white", // Text color
-              fontSize: "16px",
-              fontWeight: "bold",
-              width: "40px", // Match thumb size
-              height: "40px",
-              top: "50%", // Align to the center
-              left: "50%",
-              transform: "translate(-50%, -50%) !important", // Center the number
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }
-          }}
-        />
-        <Typography className="slider-warning"><i>If the slider value exceeds the maximum possible number of unique prompts, the slider will be automatically readjusted.</i></Typography>
-      </Box>
+      <div className='slider-section'>
+        <div style={{fontWeight: 'bold'}} className='slider-question'>
+          How many problems would you like to do?
+        </div>
+        <div className='slider-wrapper'>
+          <input
+            type='range'
+            min='1'
+            max='20'
+            step='1'
+            value={problemCount}
+            onChange={e => setProblemCount(parseInt(e.target.value))}
+            className='problem-slider'
+          />
+          <div className='slider-value'>{problemCount}</div>
+        </div>
+        <div className='slider-warning'>
+          <i>
+            If the slider value exceeds the maximum possible number of unique
+            prompts, the slider will be automatically readjusted.
+          </i>
+        </div>
+      </div>
 
       {/* Start Button */}
-      <Box className="start-button-container">
-        <Button variant="contained" className="start-button">Start</Button>
-      </Box>
-    </Box>
+      <div className='start-button-container'>
+        <button className='start-button'>Start</button>
+      </div>
+    </div>
   );
 }
